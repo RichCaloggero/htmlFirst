@@ -1,0 +1,31 @@
+
+
+{
+"version": "0.2.0",
+"configurations": [
+
+{"name": "Launch t.html",
+"type": "firefox",
+"request": "launch",
+"reAttach": true,
+"firefoxExecutable": "developer",
+
+
+"log": {
+"consoleLevel": {
+"PathConversion": "Debug",
+"default": "Error"
+}
+},
+"clearConsoleOnReload": true,
+"suggestPathMappingWizard": true,
+
+"file": "${workspaceFolder}/t.html",
+"pathMappings": [{
+"url": "http://localhost:3000/",
+"path": "${workspaceFolder}"
+}]
+}
+]
+}
+
