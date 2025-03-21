@@ -18,7 +18,7 @@
 import { countries } from "./countries.js";
 
 loadList(document.querySelector("#html-select-country select"), countries);
-//createListbox(loadList(document.querySelector("#aria-select-country ul"), countries, "li"), "countries");
+createListbox(loadList(document.querySelector("#aria-select-country ul"), countries, "li"), "countries");
 
 function loadList ($container, values, itemType = "option") {
 for (const value of   values) {
@@ -33,19 +33,23 @@ return $container;
 function createListbox ($container, id) {
 $container.id = id;
 $container.role = "listbox";
-$container.children.forEach(x => x.setAttribute("role", "option"));
+[...$container.children].forEach(x => x.setAttribute("role", "option"));
 if ($container.children.length > 0) $container.children[0].setAttribute("aria-selected", "true");
 $container.setAttribute("tabindex", "0");
 
 run($container, $container.firstElementChild);
 
-function run ($listbox, initialSelection) {
+function run ($listbox, $initialSelection) {
 const id = `${$listbox.id}-activeDescendant`;
-if ($initialSelection) setFocus($initialSelection);
+if ($initialSelection) {
+$initialSelection.setAttribute("id", id);
+$listbox.setAttribute("aria-activedescendant", id);
+setFocus($initialSelection);
+} // if
 
 $listbox.addEventListener("keydown", e => {
 switch (e.key) {
-case "ArrowDown": next($listbox); break;
+case "ArrowDown"    : next($listbox); break;
 case "ArrowUp": prev($listbox); break;
 default: return true;
 } // switch
@@ -57,23 +61,22 @@ function next ($listbox) {
 const $activeItem = active($listbox);
 
 if ($activeItem && $activeItem.nextElementSibling) {
-unsetFocus($listbox);
 setFocus($activeItem.nextElementSibling);
 } // if
 } // next
 
-function next ($listbox) {
+function prev ($listbox) {
 const $activeItem = active($listbox);
 
 if ($activeItem && $activeItem.previousElementSibling) {
-unsetFocus($listbox);
 setFocus($activeItem.previousElementSibling);
 } // if
 } // prev
 
 function setFocus ($item) {
-if ($item && not(item.hasAttribute("aria-selected"))) {
+if (            $item && not($item.hasAttribute("aria-selected"))) {
 const id = unsetFocus($listbox);
+$item.setAttribute("aria-selected", "true");
 $item.setAttribute("id", id);
 $listbox.setAttribute("aria-activedescendant", id);
 } // if
@@ -103,6 +106,8 @@ return $listbox.querySelector("[aria-selected]");
 } // createListbox
 
 
+
+function not (x) {return !x;}
 
 </script>
 
