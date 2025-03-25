@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -5,13 +6,19 @@
 <title>Test</title>
 </head>
 <body>
+<h1>Simple Select List Demo</h1>
+
+<p>The purpose of this demo is to show how much easier it is to use built-in HTML elements rather than creating your own equivalence using javascript. Keyboard and screen reader accessibility come for free when pure HTML is used, and due to updated browser capabilities, styling form controls (like `select`, `input`, `textarea`, etc) has gotten much easier. This last point bares repeating since it is the primary reason developers tend to create their own solutions. However, this is also where we see a lot of inaccessible code, and fixing such code is not necessarily easy nor effective.</p>
+
 
 <div class="select country" id="html-select-country">
-<select class="country"></select>
-</div>
+<label>Select country (pure HTML Select list):
+<br><select class="country"></select>
+</label></div>
 
 <div class="select country" id="aria-select-country">
-<ul class="country"></ul>
+<label id="countries-label">Select country (HTML unordered list plus ARIA and javascript):</label>
+<br><ul aria-labelledby="countries-label"></ul>
 </div>
 
 <script type="module">
@@ -31,8 +38,11 @@ return $container;
 } // loadList
 
 function createListbox ($container, id) {
-$container.id = id;
+if (not($container.id)) $container.id = id;
 $container.role = "listbox";
+//$container.setAttribute("style", "list-style-type:none");
+$container.style.listStyleType = "none";
+$container.tabIndex = 0;
 [...$container.children].forEach(x => x.setAttribute("role", "option"));
 if ($container.children.length > 0) $container.children[0].setAttribute("aria-selected", "true");
 $container.setAttribute("tabindex", "0");
@@ -48,14 +58,35 @@ setFocus($initialSelection);
 } // if
 
 $listbox.addEventListener("keydown", e => {
-switch (e.key) {
-case "ArrowDown"    : next($listbox); break;
-case "ArrowUp": prev($listbox); break;
-default: return true;
-} // switch
+const key = e.key;
+if (key === "ArrowDown") {
+next($listbox);
+} else if (key === "ArrowUp") {
+prev($listbox);
+} else if (key.length === 1) {
+findMatch(key);
+} else {
+return true;
+} // if
+
 e.preventDefault();
 return false;
 });
+
+function findMatch (c) {
+c = c.toLowerCase();
+const matches = [...[...$listbox.children].entries().filter(entry => entry[1].textContent[0].toLowerCase() === c)];
+if (matches.length > 0) {
+setFocus(matches[0][1]);
+return true;
+} // if
+return false;
+
+} // findMatch
+
+function isAlphanumeric (c) {
+return c.match(/[A-Za-z0-9]/);
+} // isAlphanumeric
 
 function next ($listbox) {
 const $activeItem = active($listbox);
