@@ -1,4 +1,3 @@
-
 <!DOCTYPE HTML>
 <html lang="en">
 <head>
@@ -75,13 +74,18 @@ return false;
 
 function findMatch (c) {
 c = c.toLowerCase();
-const matches = [...[...$listbox.children].entries().filter(entry => entry[1].textContent[0].toLowerCase() === c)];
-if (matches.length > 0) {
-setFocus(matches[0][1]);
-return true;
-} // if
-return false;
+const $start = active($listbox);
+let $item = $start;
+while (($item = $item.nextElementSibling) !== $start) {
+if ($item === null) $item = $listbox.children[0];
 
+if ($item.textContent[0].toLowerCase() === c) {
+setFocus($item);
+return $item;
+} // if
+} // while
+
+return null;
 } // findMatch
 
 function isAlphanumeric (c) {
