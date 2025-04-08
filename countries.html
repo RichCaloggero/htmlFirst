@@ -23,30 +23,49 @@
 <script type="module">
 import { countries } from "./countries.js";
 
-loadList(document.querySelector("#html-select-country select"), countries);
-createListbox(loadList(document.querySelector("#aria-select-country ul"), countries, "li"), "countries");
+loadList(countries, {container: document.querySelector("#html-select-country select")});
 
-function loadList ($container, values, itemType = "option") {
+createListbox(
+loadList(countries, {
+container: document.querySelector("#aria-select-country ul"),
+itemContainer: "li", valueContainer: "span"
+}), {
+id: "countries",
+description: "listbox",
+role: "grid",
+itemRole: "gridrow",
+valueRole: "gridcell"
+});
+
+function loadList (values, options = {}) {
+const {container: $container = "ul", itemContainer = "option", valueContainer = ""} = options;
+
 for (const value of   values) {
-const $item = document.createElement(itemType);
-$item.textContent = value;
+const $item = document.createElement(itemContainer);
+const $value = valueContainer? document.createElement(valueContainer) : $item;
+$value.className = "value";
+$value.textContent = value;
+
+if ($value !== $item) $item.appendChild($value);
 $container.appendChild($item);
 } // for
 
 return $container;
 } // loadList
 
-function createListbox ($container, id) {
-if (not($container.id)) $container.id = id;
-$container.role = "listbox";
-//$container.setAttribute("style", "list-style-type:none");
+function createListbox ($container, options) {
+const {id, role = "listbox", description = "", itemRole = "option", valueRole= ""} = options;
+
+if (not($container.id)) $container.id = id || generateId();
+$container.role = role;
 $container.style.listStyleType = "none";
 $container.tabIndex = 0;
-[...$container.children].forEach(x => x.setAttribute("role", "option"));
-if ($container.children.length > 0) $container.children[0].setAttribute("aria-selected", "true");
-$container.setAttribute("tabindex", "0");
-
-run($container, $container.firstElementChild);
+[...$container.children].forEach(x => {
+x.setAttribute("role", itemRole)
+if (valueRole)  x.querySelector(".value")?.setAttribute("role", valueRole);
+});
+if ($container.children.length > 0) $container.querySelector(".value").setAttribute("aria-selected", "true");
+run($container, $container.querySelector("[aria-selected]"));
 
 function run ($listbox, $initialSelection) {
 const id = `${$listbox.id}-activeDescendant`;
@@ -56,6 +75,7 @@ $listbox.setAttribute("aria-activedescendant", id);
 setFocus($initialSelection);
 } // if
 
+$listbox.addEventListener("focusin", e => setFocus(active($listbox)));
 $listbox.addEventListener("keydown", e => {
 const key = e.key;
 if (key === "ArrowDown") {
@@ -65,7 +85,7 @@ prev($listbox);
 } else if (key.length === 1) {
 findMatch(key);
 } else {
-return true;
+return;
 } // if
 
 e.preventDefault();
@@ -114,6 +134,7 @@ const id = unsetFocus($listbox);
 $item.setAttribute("aria-selected", "true");
 $item.setAttribute("id", id);
 $listbox.setAttribute("aria-activedescendant", id);
+$listbox.focus();
 } // if
 
 return $item;
@@ -134,7 +155,7 @@ return id;
 } // unsetFocus
 
 function active ($listbox) {
-return $listbox.querySelector("[aria-selected]");
+return $listbox.querySelector("[aria-selected]").closest("li");
 } // active
 } // run
 
