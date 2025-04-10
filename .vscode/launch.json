@@ -4,7 +4,7 @@
 "version": "0.2.0",
 "configurations": [
 
-{"name": "Launch countries.html",
+{"name": "Launch listbox.html",
 "type": "firefox",
 "request": "launch",
 "reAttach": true,
@@ -19,9 +19,9 @@
 },
 "clearConsoleOnReload": true,
 
-"webRoot": "${workspaceFolder}",
-"url": "http://localhost:3000/countries.html"
+"url": "http://localhost:3000"
 }
+
 ]
 }
 
