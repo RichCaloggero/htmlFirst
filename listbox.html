@@ -5,7 +5,22 @@
 <title>Test</title>
 </head>
 <body>
-<p id="complex-label">Complex listbox</p>
+<hr><p id="tree">Tree structure</p>
+<list-box aria-labelledby="tree-label">
+<li><span>veggies</span>
+<ul>
+<li><span>broccoli</span></li>
+<li><span>carots</span></li>
+</ul></li>
+<li><span>
+<label>fruits <input type="checkbox"></label>
+</span><ul hidden>
+<li><span>apple</span></li>
+<li><span>orange</span></li>
+</ul></li>
+</list-box>
+
+<hr><p id="complex-label">Complex listbox</p>
 <list-box aria-labelledby="complex-label">
 <li><span>--select option--</span></li>
 <li><span>
@@ -18,7 +33,7 @@
 
 </list-box>
 
-<p id="simple-label">Simple listbox</p>
+<hr><p id="simple-label">Simple listbox</p>
 <list-box aria-labelledby="simple-label">
 <li><span>option 1</span></li>
 <li><span>option 2</span></li>

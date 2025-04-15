@@ -1,7 +1,7 @@
 customElements.define("list-box", class Listbox extends HTMLElement {
 #focusableElements = "button, input, textarea, select, a";
 #shadow = null;
-#listbox = null;
+#top = null;
 #init = false;
 
 constructor (id) {
@@ -9,94 +9,104 @@ super ();
 
 const shadow = this.#shadow = this.attachShadow({mode: "open", /*delegatesFocus: true*/});
 const container = document.createElement("div");
-container.role = "application";
+//container.role = "application";
 container.insertAdjacentHTML("beforeEnd",
-`<ul role="grid" aria-roledescription="listbox"
-style="list-style-type:none">
+`<ul style="list-style-type:none">
 <slot></slot>
 </ul>
 `);
 
-shadow.appendChild(container);
-this.#listbox = container.querySelector("ul");
-this.#listbox.setAttribute("tabindex", "0");
-//this.setAttribute("tabindex", "0");
+shadow.appendChild(container.firstChild);
+this.#top = shadow.firstChild;
 } // constructor
 
 connectedCallback () {
 const label = document.querySelector(`#${this.getAttribute("aria-labelledby")}`);
-if (label) this.#listbox.ariaLabelledByElements = [label];
+if (label) this.#top.ariaLabelledByElements = [label];
 
 
 this.#shadow.addEventListener("slotchange", e => {
 const slot = this.#shadow.querySelector("slot");
-if (this.#validateContents(slot)) this.#addAria(slot.assignedElements());
-else throw new Error("list-box: slot must contain only \"li\" elements");
+const elements = slot.assignedElements({flatten: true});
+
+if (this.#init) return;
+this.#addAria(elements);
+this.#setFocus(elements[0]);
+this.#init = true;
 }); // slotchange event
 
 this.addEventListener("keydown", this.#keyboardHandler);
 } // connectedCallback
 
 #next () {
-const current = this.#active();
+const current = this.#selected();
 
 if (current && current.nextElementSibling) this.#setFocus(current.nextElementSibling);
 } // #next
 
 #previous () {
-const current = this.#active();
+const current = this.#selected();
 
 if (current && current.previousElementSibling) this.#setFocus(current.previousElementSibling);
 } // #previous
 
 #setFocus (row) {
 if (row.role !== "row") throw new Error("list-box: bad ARIA; aborting");
-this.ariaActiveDescendantElement = null;
-
-const activeDescendant= this.#activate(row);
-//this.ariaActiveDescendantElement = activeDescendant;
-//this.focus();
-this.#listbox.ariaActiveDescendantElement= activeDescendant;
-this.#listbox.focus();
+this.#unsetFocus();
+const selectedElement = this.#select(row);
+selectedElement.tabIndex = 0;
+selectedElement.focus();
 } // #setFocus
 
-#activate (row) {
+#unsetFocus () {
+this.#selected()?.querySelector("[aria-selected]").removeAttribute("aria-selected");
+this.querySelector("[tabindex='0']")?.setAttribute("tabindex", "-1");
+} // #unsetFocus
+
+#select(row) {
 const focusable = row.querySelectorAll(this.#focusableElements);
 if (focusable.length > 0) {
-//focusable[0].setAttribute("aria-selected", "true");
+focusable[0].setAttribute("aria-selected", "true");
 return focusable[0];
 } else {
 row.firstChild.setAttribute("aria-selected", "true");
 return row.firstChild;
 } // if
 
-} // #activate
+} // #select
 
-#active () {
-const descendant = this.#listbox.ariaActiveDescendantElement;
-return descendant? descendant.closest("li") : null;
-} // #active
+#selected () {
+return this.querySelector("[aria-selected]")?.closest("[role='row']");
+} // #selected
 
-#validateContents (slot) {
-const ok = slot.assignedElements().every(x => x.tagName === "LI");
+#validateContents (elements) {
+const ok = elements.every(x => x.tagName === "LI");
 if (ok) return true;
 } // #validateContents
 
 #addAria (elements) {
-if (elements.length === 0) {
-this.#init = false;
-return;
-} // if
-
 for (const element of elements) {
+const branch = element.querySelector("ul, ol");
+if (branch) {
+branch.role = "grid";
+element.setAttribute("aria-expanded", "false");
+this.#addAria(branch.children);
+} // if
+if (element.matches("li")) {
 element.role = "row";
 element.firstChild.role = "gridcell";
-element.querySelectorAll(this.#focusableElements).forEach(x => x.tabIndex = -1);
+element.firstChild.querySelectorAll(this.#focusableElements).forEach(x => x.tabIndex = -1);
+} // if
 } // for
 
-if (this.#init) return;
-this.#setFocus(elements[0]);
-this.#init = true;
+if ([...elements].find(x => x.querySelector("ul, ol"))) {
+this.#top.setAttribute("role", "treegrid");
+this.#top.setAttribute("aria-roledescription", "tree");
+ } else {
+this.#top.setAttribute("role", "grid");
+this.#top.setAttribute("aria-roledescription", "listbox");
+} // if
+
 } // #addAria
 
 #keyboardHandler (e) {
@@ -107,7 +117,7 @@ this.#next();
 } else if (key === "ArrowUp") {
 this.#previous();
 } else if (key === "Enter" || key === " ") {
-const active = this.#listbox.ariaActiveDescendantElement;
+const active = this.#top.ariaActiveDescendantElement;
 if (active && active.matches(this.#focusableElements)) {
 active.click();
 } // if
