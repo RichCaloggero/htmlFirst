@@ -38,6 +38,42 @@ this.#init = true;
 this.addEventListener("keydown", this.#keyboardHandler);
 } // connectedCallback
 
+#keyboardHandler (e) {
+const key = e.key;
+console.log(`key: ${key}`);
+
+if (key === "ArrowDown") {
+this.#next();
+} else if (key === "ArrowUp") {
+this.#previous();
+} else if (key === "ArrowRight") {
+this.#down();
+} else if (key === "ArrowLeft") {
+this.#up();
+}else if (key === "Home") {
+this.#first();
+} else if (key === "End") {
+this.#last();
+} else if (key === "Enter" || key === " ") {
+const active = this.#top.ariaActiveDescendantElement;
+if (active && active.matches(this.#focusableElements)) {
+active.click();
+} // if
+
+} else if (key.length === 1) {
+this.#findMatch(key);
+} else {
+return;
+} // if
+
+e.preventDefault();
+return false;
+} // #keyboardHandler
+
+#findMatch (key) {
+
+} // #findMatch
+
 #next () {
 const current = this.#selected();
 
@@ -49,6 +85,38 @@ const current = this.#selected();
 
 if (current && current.previousElementSibling) this.#setFocus(current.previousElementSibling);
 } // #previous
+
+#first () {
+const current = this.#selected();
+
+if (current) this.#setFocus(current.closest("[role='grid'], [role='treegrid']").querySelector("[role='row']"));
+} // #first
+
+#last () {
+const current = this.#selected();
+
+if (current) this.#setFocus(current.closest("[role='grid'], [role='treegrid'] [role='row']:last-child"));
+} // #last
+
+#down () {
+const current = this.#selected();
+const branch = current?.querySelector("[role='grid'] [role='row']")
+
+if (branch) {
+branch.closest("[role='grid']").hidden = false;
+this.#setFocus(branch);
+} // if
+} // #down
+
+#up () {
+const current = this.#selected();
+const branch = current && current.closest("[role='grid']")?.closest("[role='row']");
+
+if (branch) {
+current.closest("[role='grid']").hidden = true;
+this.#setFocus(branch);
+} // if
+} // #up
 
 #setFocus (row) {
 if (row.role !== "row") throw new Error("list-box: bad ARIA; aborting");
@@ -86,55 +154,30 @@ if (ok) return true;
 
 #addAria (elements) {
 for (const element of elements) {
-const branch = element.querySelector("ul, ol");
+const branch = element.querySelector("ul, ol, table");
 if (branch) {
 branch.role = "grid";
 element.setAttribute("aria-expanded", "false");
 this.#addAria(branch.children);
 } // if
-if (element.matches("li")) {
+if (element.matches("li, tr")) {
 element.role = "row";
 element.firstChild.role = "gridcell";
 element.firstChild.querySelectorAll(this.#focusableElements).forEach(x => x.tabIndex = -1);
 } // if
 } // for
 
-if ([...elements].find(x => x.querySelector("ul, ol"))) {
+if ([...elements].find(x => x.querySelector("[role='grid']"))) {
 this.#top.setAttribute("role", "treegrid");
 this.#top.setAttribute("aria-roledescription", "tree");
- } else {
+this.querySelectorAll("[role='grid']").forEach(x => x.hidden = true);
+} else {
 this.#top.setAttribute("role", "grid");
 this.#top.setAttribute("aria-roledescription", "listbox");
 } // if
 
 } // #addAria
 
-#keyboardHandler (e) {
-const key = e.key;
-console.log(`key: ${key}`);
-if (key === "ArrowDown") {
-this.#next();
-} else if (key === "ArrowUp") {
-this.#previous();
-} else if (key === "Enter" || key === " ") {
-const active = this.#top.ariaActiveDescendantElement;
-if (active && active.matches(this.#focusableElements)) {
-active.click();
-} // if
-
-} else if (key.length === 1) {
-this.#findMatch(key);
-} else {
-return;
-} // if
-
-e.preventDefault();
-return false;
-} // #keyboardHandler
-
-#findMatch (key) {
-
-} // #findMatch
 
 
 }); // class
