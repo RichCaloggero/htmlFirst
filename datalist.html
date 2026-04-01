@@ -19,7 +19,6 @@
 <script type="module">
 import { countries } from "./countries.js";
 
-loadList(countries, {container: document.querySelector("#html-select-country select"), hidden: true});
 loadList(countries, {container: document.querySelector("#datalist-select-country datalist")});
 
 document.querySelector("#datalist-select-country input").addEventListener("input", reportMatchCount);
