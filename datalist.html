@@ -19,6 +19,7 @@
 <script type="module">
 import { countries } from "./countries.js";
 
+const _timeout = null;
 loadList(countries, {container: document.querySelector("#datalist-select-country datalist")});
 
 document.querySelector("#datalist-select-country input").addEventListener("input", reportMatchCount);
@@ -28,12 +29,15 @@ const $input = e.target;
 const $list = document.getElementById($input.getAttribute("list"));
 const $items = $list.querySelectorAll("option");
 const value = $input.value;
+const $status = document.querySelector("[role='status']");
 
-if (value === "") return;
+if (_timeout) clearTimeout(_timeout);
 console.log("value: ", value);
 
 const matches = [...$items].filter(item => item.textContent.toLowerCase().includes(value.toLowerCase()));
-document.querySelector("[role='status']").textContent = `${matches.length} items found.`;
+
+$status.textContent = `${matches.length} items found.`;
+setTimeout(() => $status.textContent = "", 7000);
 } // reportMatchCount
 
 function loadList (values, options = {}) {
