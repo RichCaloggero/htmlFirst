@@ -1,0 +1,62 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Test</title>
+</head>
+<body>
+<h1>Simple Select List Demo</h1>
+
+<div class="select country" id="datalist-select-country">
+<label>Select country (HTML datalist):
+<br><input role="combobox" type="search" list="countries-datalist" aria-autocomplete="both" name="country">
+</label>
+<datalist id="countries-datalist"></datalist>
+</div>
+
+<div role="status"></div>
+
+<script type="module">
+import { countries } from "./countries.js";
+
+loadList(countries, {container: document.querySelector("#html-select-country select"), hidden: true});
+loadList(countries, {container: document.querySelector("#datalist-select-country datalist")});
+
+document.querySelector("#datalist-select-country input").addEventListener("input", reportMatchCount);
+
+function reportMatchCount (e) {
+const $input = e.target;
+const $list = document.getElementById($input.getAttribute("list"));
+const $items = $list.querySelectorAll("option");
+const value = $input.value;
+
+if (value === "") return;
+console.log("value: ", value);
+
+const matches = [...$items].filter(item => item.textContent.toLowerCase().includes(value.toLowerCase()));
+document.querySelector("[role='status']").textContent = `${matches.length} items found.`;
+} // reportMatchCount
+
+function loadList (values, options = {}) {
+const {container: $container = "ul", itemContainer = "option", valueContainer = "", hidden = false} = options;
+
+for (const value of   values) {
+const $item = document.createElement(itemContainer);
+const $value = valueContainer? document.createElement(valueContainer) : $item;
+$value.className = "value";
+$value.textContent = value;
+
+if ($value !== $item) $item.appendChild($value);
+$container.appendChild($item);
+} // for
+
+$container.hidden = hidden;
+return $container;
+} // loadList
+
+
+</script>
+
+</body>
+</html>
+

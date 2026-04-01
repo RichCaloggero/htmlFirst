@@ -110,7 +110,7 @@ this.#setFocus(branch);
 
 #up () {
 const current = this.#selected();
-const branch = current && current.closest("[role='grid']")?.closest("[role='row']");
+const branch = current && current.closest("[role='grid'], [role='group']")?.closest("[role='row']");
 
 if (branch) {
 current.closest("[role='grid']").hidden = true;
@@ -170,7 +170,10 @@ element.firstChild.querySelectorAll(this.#focusableElements).forEach(x => x.tabI
 if ([...elements].find(x => x.querySelector("[role='grid']"))) {
 this.#top.setAttribute("role", "treegrid");
 this.#top.setAttribute("aria-roledescription", "tree");
-this.querySelectorAll("[role='grid']").forEach(x => x.hidden = true);
+this.querySelectorAll("[role='grid']").forEach(x => {
+x.setAttribute("roledescription", "branch");
+x.hidden = true;
+});
 } else {
 this.#top.setAttribute("role", "grid");
 this.#top.setAttribute("aria-roledescription", "listbox");
